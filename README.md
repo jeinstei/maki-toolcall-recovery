@@ -104,7 +104,8 @@ Lua, and **where you make that call depends on how the plugin is loaded.**
 
 **Installed as a package** (the normal case), the module lives in the package's
 own sandbox, so a config-dir `init.lua` cannot `require` it. Pass the custom
-loader, which runs as the package owner and can:
+loader, which runs as the package owner and can. The loader applies to every
+spec in its `pack.add` call, so give the package its own call:
 
 ```lua
 maki.pack.add({

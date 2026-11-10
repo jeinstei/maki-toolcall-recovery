@@ -68,6 +68,41 @@ calling `prev(value)`, continues the chain untouched.
 A layer on `agent.stop` must hold **every** permission or the host drops it,
 silently, one warning per missing gap.
 
+## Packaging and manifest
+
+- A package loads every `plugin/*.lua` as chunks under one owner; the entry is
+  `plugin/toolcall_recovery.lua` → `require("toolcall_recovery")`. The package's
+  `require` root is sandboxed to its own `lua/`.
+- `plugin.toml` is read **only on the packaged path**. Loaded by symlink into
+  `~/.config/maki/lua/`, the config dir's own `plugin.toml` governs instead.
+- `min_maki_version` is set by the **permission set**, not by `agent.stop`.
+  `agent.stop` + `{continue}` + all-permission pricing exist since `v0.5.7`, but
+  the ten-variant `Permission` enum only exists from `v0.7.0` (`session_read` /
+  `session_write` / `session_settings` / `input` arrived there). Hence `0.7.0`.
+- Configuring a package-loaded plugin needs a custom `load` in `pack.add`, run as
+  the package owner (a config-dir `init.lua` cannot `require` a package's
+  sandboxed module).
+
+## Gotchas
+
+- **A tail closer that fires is always a real leaked call — even when the
+  message is *about* leaks.** The model/provider spontaneously appends the DSML
+  closer to the assistant content's tail, so prose explaining the plugin can end
+  in a genuine appended closer. The classifier fires on that; it is correct, and
+  cannot distinguish it from an intended call (same bytes). Mid-message quoted
+  markers do **not** fire (tail-anchored), and the retry budget caps a run of
+  such turns. The future parse stage is the real fix: validate the reconstructed
+  tool name against the request's declared tools before acting.
+- **`pack.add`'s `load` applies to every spec in the call.** `opts.load` is
+  cloned onto each spec (`pack.rs`), so two packages in one call with one loader
+  both get it — the second throws `module not found` under its own owner. Give
+  each package that needs a loader its **own** `pack.add` call.
+- **`require` in a package is sandboxed.** `require("toolcall_recovery")` from a
+  config-dir `init.lua` will not reach a package's module; use the `load` hook.
+- **Non-obvious default:** `instrument` is `false`, so a shipped install logs no
+  per-turn tail. That is deliberate; `maki.log.debug` lines are dropped unless
+  `MAKI_LOG=debug`.
+
 ## Style
 
 - No trivial comments. Each line earns its place.

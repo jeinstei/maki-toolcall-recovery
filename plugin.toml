@@ -21,7 +21,8 @@ input = true
 
 # Options (max_retries, instrument) are not read here. Set them from Lua; the
 # `load` function runs as the package owner, so require() resolves inside the
-# package sandbox:
+# package sandbox. The loader applies to every spec in its pack.add call, so
+# give this package its own call:
 #
 #   maki.pack.add({ { src = "https://github.com/jeinstei/maki-toolcall-recovery" } }, {
 #     load = function(package)
