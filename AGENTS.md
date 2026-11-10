@@ -79,8 +79,18 @@ silently, one warning per missing gap.
 - A package loads every `plugin/*.lua` as chunks under one owner; the entry is
   `plugin/toolcall_recovery.lua` → `require("toolcall_recovery")`. The package's
   `require` root is sandboxed to its own `lua/`.
-- `plugin.toml` is read **only on the packaged path**. Loaded by symlink into
-  `~/.config/maki/lua/`, the config dir's own `plugin.toml` governs instead.
+- `plugin.toml` is read from the package's own directory on every packaged path
+  (managed `pack.add` or hand-placed). Only a config-dir plugin is governed by
+  the config dir's `plugin.toml` instead.
+- **Develop in the package layout, live.** Place the repo under a manual group so
+  maki runs it straight from the working tree, no clone or commit:
+  `mkdir -p ~/.local/share/maki/site/pack/dev/start` then
+  `ln -sfn "$PWD" ~/.local/share/maki/site/pack/dev/start/maki-toolcall-recovery`.
+  A hand-placed package is trusted like `init.lua` and grants what its own
+  `plugin.toml` lists, with no approval prompt. `/reload` picks up edits.
+  See maki's plugin guide: `site/docs/content/plugins/_index.md` (development
+  loop) and `site/docs/content/packages/_index.md` (install by hand, manual
+  groups).
 - `min_maki_version` is set by the **permission set**, not by `agent.stop`.
   `agent.stop` + `{continue}` + all-permission pricing exist since `v0.5.7`, but
   the ten-variant `Permission` enum only exists from `v0.7.0` (`session_read` /
