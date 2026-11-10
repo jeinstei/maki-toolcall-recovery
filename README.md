@@ -99,17 +99,38 @@ Then `/reload`.
 
 This plugin is not a bundled plugin, so it does **not** use
 `maki.api.register_options` (maki rejects a `plugins.<name>` table for a plugin
-it does not ship, and startup fails). Configure it with `setup`:
+it does not ship, and startup fails). Options go through a `setup(opts)` call in
+Lua, and **where you make that call depends on how the plugin is loaded.**
+
+**Installed as a package** (the normal case), the module lives in the package's
+own sandbox, so a config-dir `init.lua` cannot `require` it. Pass the custom
+loader, which runs as the package owner and can:
 
 ```lua
-local recovery = require("toolcall_recovery")
-recovery.setup({ max_retries = 2, instrument = false })
+maki.pack.add({
+  { src = "https://github.com/jeinstei/maki-toolcall-recovery" },
+}, {
+  load = function(package)
+    require("toolcall_recovery").setup({ max_retries = 2, instrument = false })
+  end,
+})
+```
+
+**Loaded by symlink for development**, the config-dir require root is trusted,
+so a plain call works:
+
+```lua
+require("toolcall_recovery").setup({ max_retries = 2, instrument = false })
 ```
 
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `max_retries` | `2` | How many nudges per stall episode before giving up. |
 | `instrument` | `false` | Log one `debug` line per finished turn with the whole byte-escaped message, matched or not, so a spelling the patterns do not cover yet is captured. Needs `MAKI_LOG=debug` to appear. |
+
+Both options and the package's `min_maki_version` are documented, commented, in
+`plugin.toml`. `max_retries` and `instrument` are **not** read from there — the
+manifest is read only on the packaged path, and only for permissions.
 
 Logs go to maki's log file (`maki.env.logs_dir()`, Linux:
 `~/.local/logs/maki/`). A recovery logs one `info` line; giving up after the

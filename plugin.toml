@@ -1,9 +1,12 @@
-min_maki_version = "0.7.1"
+# Manifest for the maki package, read only on the packaged path. Loaded by
+# symlink into ~/.config/maki/lua/ instead, a config dir's own plugin.toml
+# governs and this file is not consulted.
 
-# Wrapping `agent.stop` costs every permission: any `agent.*` slot steers what
-# the agent does next, so the host prices the chain at its ceiling. The plugin
-# only reads `value.last_message` and returns a `continue` string, but the grant
-# is the plugin's blast radius. See the README.
+min_maki_version = "0.7.0"
+
+# A layer on any `agent.*` slot is priced at every permission, and a layer
+# missing one is dropped from the chain, so the full set is required. The code
+# only reads `value.last_message` and returns a `continue` string.
 [permissions]
 fs_read = true
 fs_write = true
@@ -15,3 +18,13 @@ session_read = true
 session_write = true
 session_settings = true
 input = true
+
+# Options (max_retries, instrument) are not read here. Set them from Lua; the
+# `load` function runs as the package owner, so require() resolves inside the
+# package sandbox:
+#
+#   maki.pack.add({ { src = "https://github.com/jeinstei/maki-toolcall-recovery" } }, {
+#     load = function(package)
+#       require("toolcall_recovery").setup({ instrument = true })
+#     end,
+#   })
