@@ -1,5 +1,8 @@
 # maki-toolcall-recovery
 
+NOTE: as of 10.11.2026, this plugin was AI-directed, but has not been completely
+reviewed by a human.
+
 Some OpenAI-compatible servers leak a tool call **as text** in the assistant
 `content` — DeepSeek DSML markup, `antml`, and similar dialects — instead of
 sending a structured `tool_calls` field. maki parses tools only from

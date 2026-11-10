@@ -9,6 +9,12 @@ A maki plugin that recovers a turn where the model wrote a tool call as text
 structured `tool_calls` field. It layers the `agent.stop` slot and answers with
 `{ continue = <nudge> }` so the agent retries the same turn.
 
+The failure is a known upstream bug in the serving stack's tool-call parser, not
+a client problem. The README's "Why this happens" section lists the reports the
+shipped patterns were written against (vLLM #48931 and its fixes #49117/#52645/
+#55954; SGLang #40236→#40237, #23915, #14695). The `parse`-stage design borrows
+the declared-tool-name validation those fixes use.
+
 ## Hard constraints
 
 - **Conservative detection.** A missed call is a message whose **tail** ends in
