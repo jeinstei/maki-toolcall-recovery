@@ -1,0 +1,17 @@
+min_maki_version = "0.7.1"
+
+# Wrapping `agent.stop` costs every permission: any `agent.*` slot steers what
+# the agent does next, so the host prices the chain at its ceiling. The plugin
+# only reads `value.last_message` and returns a `continue` string, but the grant
+# is the plugin's blast radius. See the README.
+[permissions]
+fs_read = true
+fs_write = true
+net = true
+run = true
+env = true
+agent = true
+session_read = true
+session_write = true
+session_settings = true
+input = true
